@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  tor-bridge:
+    build: .
+    container_name: tor-bridge
+    restart: unless-stopped
+    network_mode: "host"
+    volumes:
+      - ./config/torrc:/etc/tor/torrc:ro
+      - ./logs:/var/log/tor
