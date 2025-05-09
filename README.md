@@ -1,4 +1,4 @@
-# 🏴‍☠️ Tor Bridge روی Docker - نصب خودکار
+# 🏴‍☠️ نصب و راه اندازی خودکار Tor Bridge روی Docker
 
 پیکربندی کامل Tor Bridge با obfs4proxy در کمتر از 1 دقیقه!
 
