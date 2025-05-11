@@ -1,0 +1,11 @@
+RunAsDaemon 0
+DataDirectory /var/lib/tor
+Log notice file /var/log/tor/notices.log
+
+BridgeRelay 1
+ORPort 2096
+ExitPolicy reject *:*
+PublishServerDescriptor 0
+
+ServerTransportPlugin obfs4 exec /usr/bin/obfs4proxy
+ServerTransportListenAddr obfs4 0.0.0.0:8443
