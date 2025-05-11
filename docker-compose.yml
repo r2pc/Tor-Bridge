@@ -1,10 +1,10 @@
-version: '3.8'
 services:
   tor-bridge:
     build: .
-    container_name: tor-bridge
-    restart: unless-stopped
-    network_mode: "host"
+    user: "100:101"  # استفاده از UID/GID واقعی
     volumes:
-      - ./config/torrc:/etc/tor/torrc:ro
-      - ./logs:/var/log/tor
+      - ./tor-data:/var/lib/tor
+      - ./tor-logs:/var/log/tor
+    ports:
+      - "2096:2096"
+      - "8443:8443"
