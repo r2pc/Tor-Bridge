@@ -1,7 +1,9 @@
 ```markdown
 # 🌉 Dockerized TorRelay Setup
 
-![Tor Network](https://upload.wikimedia.org/wikipedia/commons/1/15/Tor-logo-2011-flat.svg)
+<p align="center">
+  ![لوگوی DockerizedTorRelay](DockerizedTorRelay.jpg)
+</p>
 
 یک راه‌حل کامل برای راه‌اندازی Bridge Relay با obfs4 روی Docker
 
