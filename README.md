@@ -1,6 +1,6 @@
 
   <div align="center">
-  <img src="DockerizedTorRelay.jpg" alt="Docker Logo" width="50%">
+  <img src="logo.jpg" alt="Docker Logo" width="50%">
 </div>
 
 ```markdown
