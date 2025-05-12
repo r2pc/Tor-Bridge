@@ -1,5 +1,5 @@
 ```markdown
-# 🌉 Tor Bridge Docker Setup
+# 🌉 Dockerized TorRelay Setup
 
 ![Tor Network](https://upload.wikimedia.org/wikipedia/commons/1/15/Tor-logo-2011-flat.svg)
 
