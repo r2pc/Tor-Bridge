@@ -1,9 +1,10 @@
+
+  <div align="center">
+  <img src="DockerizedTorRelay.jpg" alt="Docker Logo" width="50%">
+</div>
+
 ```markdown
 # 🌉 Dockerized TorRelay Setup
-
-<p align="center">
-  ![لوگوی DockerizedTorRelay](DockerizedTorRelay.jpg)
-</p>
 
 یک راه‌حل کامل برای راه‌اندازی Bridge Relay با obfs4 روی Docker
 
@@ -13,7 +14,6 @@
 - 🐳 **بهینه‌شده برای Docker** با حجم کم
 - ⚡ **راه‌اندازی در 1 دقیقه**
 - 📡 **پشتیبانی از obfs4proxy**
-- 🕒 **منطقه زمانی تهران** (Asia/Tehran)
 
 ## 🚀 شروع سریع
 
