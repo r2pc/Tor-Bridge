@@ -20,7 +20,7 @@ header "به‌روزرسانی سیستم"
 run_cmd "apt update && apt upgrade -y"
 
 header "نصب پیش‌نیازها"
-run_cmd "apt install -y ufw fail2ban net-tools iftop traceroute docker.io docker-buildx docker-compose-v2 curl"
+run_cmd "apt install -y ufw fail2ban net-tools iftop traceroute docker.io docker-buildx docker-compose-v2"
 
 header "تنظیم Docker"
 run_cmd "usermod -aG docker $SUDO_USER"
