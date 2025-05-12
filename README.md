@@ -1,6 +1,6 @@
 
   <div align="center">
-  <img src="logo.jpg" alt="Docker Logo" width="50%">
+  <img src="Logo.jpg" alt="Docker Logo" width="50%">
 </div>
 
 ```markdown
