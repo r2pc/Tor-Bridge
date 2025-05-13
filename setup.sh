@@ -60,8 +60,8 @@ run_cmd "docker compose up -d --build"
 
 header "نصب کامل شد"
 echo -e "${GREEN}اطلاعات Bridge:${NC}"
-run_cmd "docker exec tor-bridge cat /var/lib/tor/fingerprint"
-run_cmd "docker exec tor-bridge cat /var/lib/tor/pt_state/obfs4_bridgeline.txt"
+run_cmd "sudo docker exec tor-bridge cat /var/lib/tor/fingerprint"
+run_cmd "sudo docker exec tor-bridge cat /var/lib/tor/pt_state/obfs4_bridgeline.txt"
 
 echo -e "\n${YELLOW}دستورات مدیریتی:${NC}"
 echo "مشاهده لاگ‌ها: docker logs -f tor-bridge"
