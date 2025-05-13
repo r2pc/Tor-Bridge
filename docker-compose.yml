@@ -10,6 +10,7 @@ services:
     ports:
       - "2096:2096"
       - "8443:8443"
+    restart: unless-stopped
 
 volumes:
   tor_data:
