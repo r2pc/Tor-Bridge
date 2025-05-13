@@ -32,7 +32,7 @@ ssh_port=${ssh_port:-22}
 run_cmd "ufw default deny incoming"
 run_cmd "ufw default allow outgoing"
 run_cmd "ufw allow $ssh_port"
-run_cmd "ufw allow 2096/tcp"
+run_cmd "ufw deny 2096"
 run_cmd "ufw allow 8443/tcp"
 run_cmd "ufw --force enable"
 
