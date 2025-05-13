@@ -50,18 +50,16 @@ EOL
 run_cmd "systemctl restart fail2ban"
 
 header "راه‌اندازی Tor Bridge"
-mkdir -p ./{tor-data,tor-logs}
-
-header "تنظیم مالکیت دایرکتوری‌های Tor"
-run_cmd "chown -R 100:101 ./tor-data"
-run_cmd "chown -R 100:101 ./tor-logs"
-
 run_cmd "docker compose up -d --build"
+
+# اضافه کردن تاخیر قبل از اجرای دستورات docker exec
+header "صبر کنید تا Tor Bridge راه‌اندازی شود..."
+sleep 5
 
 header "نصب کامل شد"
 echo -e "${GREEN}اطلاعات Bridge:${NC}"
-run_cmd "sudo docker exec tor-bridge cat /var/lib/tor/fingerprint"
-run_cmd "sudo docker exec tor-bridge cat /var/lib/tor/pt_state/obfs4_bridgeline.txt"
+run_cmd "docker exec tor-bridge cat /var/lib/tor/fingerprint"
+run_cmd "docker exec tor-bridge cat /var/lib/tor/pt_state/obfs4_bridgeline.txt"
 
 echo -e "\n${YELLOW}دستورات مدیریتی:${NC}"
 echo "مشاهده لاگ‌ها: docker logs -f tor-bridge"
