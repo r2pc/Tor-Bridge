@@ -1,7 +1,8 @@
 services:
   tor-bridge:
+    container_name: tor-bridge
     build: .
-    user: "100:101"  # استفاده از UID/GID واقعی
+    user: "100:101"
     volumes:
       - ./tor-data:/var/lib/tor
       - ./tor-logs:/var/log/tor
