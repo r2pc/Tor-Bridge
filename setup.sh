@@ -33,7 +33,7 @@ fi
 
 header "انتخاب پیش‌نیازها برای نصب"
 declare -a fixed_packages=("docker.io" "docker-buildx" "docker-compose-v2" "ufw" "fail2ban")
-declare -a optional_packages=("net-tools" "iftop" "traceroute")
+declare -a optional_packages=("vnstat" "net-tools" "iftop" "traceroute")
 declare -a options=()
 
 # فیلتر کردن پکیج‌های نصب نشده از fixed_packages
