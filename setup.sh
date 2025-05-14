@@ -83,7 +83,7 @@ while true; do
             esac
             ;;
         " ") # کلید اسپیس
-            local current_package="${available_packages[$current_index]}"
+            current_package="${available_packages[$current_index]}"
             if [ "${selection_status["$current_package"]}" == " " ]; then
                 selection_status["$current_package"]='X'
                 selected_packages+=("$current_package")
