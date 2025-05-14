@@ -28,29 +28,44 @@ run_cmd "apt update"
 header "بررسی نصب بودن whiptail"
 if ! command -v whiptail &>/dev/null; then
     echo -e "${YELLOW}نصب whiptail...${NC}"
-    run_cmd "apt install -y whiptail"
+    run_cmd "DEBIAN_FRONTEND=noninteractive apt install -y whiptail"
 fi
 
 header "انتخاب پیش‌نیازها برای نصب"
-declare -a available_packages=("docker.io" "docker-buildx" "docker-compose-v2" "ufw" "fail2ban" "net-tools" "iftop" "traceroute" "vnstat")
+declare -a fixed_packages=("docker.io" "docker-buildx" "docker-compose-v2")
+declare -a optional_packages=("ufw" "fail2ban" "net-tools" "iftop" "traceroute")
 declare -a options=()
 
-for pkg in "${available_packages[@]}"; do
+# اضافه کردن پکیج‌های الزامی به صورت غیرقابل غیرفعال‌سازی
+for pkg in "${fixed_packages[@]}"; do
+    options+=("$pkg" "(اجباری)" ON)
+
+    # غیرفعال کردن انتخاب‌پذیری آن‌ها با اضافه کردن تگ disabled (فقط برای whiptail قابل پیاده‌سازی نیست ولی برای dialog می‌توان)
+    # اینجا فقط به صورت بصری آنها را انتخاب‌شده نشان می‌دهیم
+    # whiptail چنین امکانی ندارد که انتخاب را قفل کند
+
+done
+
+# اضافه کردن پکیج‌های اختیاری
+for pkg in "${optional_packages[@]}"; do
     options+=("$pkg" "" OFF)
 done
 
-selected=$(whiptail --title "نصب پیش‌نیازها" \
+selected=$(whiptail --title "انتخاب نرم‌افزارهای مورد نیاز" \
   --checklist "نرم‌افزارهایی که می‌خواهید نصب شوند را انتخاب کنید:" \
-  20 78 12 "${options[@]}" 3>&1 1>&2 2>&3)
+  20 78 15 "${options[@]}" 3>&1 1>&2 2>&3)
 
-selected_packages=()
+selected_packages=("${fixed_packages[@]}")
 for pkg in $selected; do
-    selected_packages+=("$(echo $pkg | tr -d '"')")
-done
+    cleaned=$(echo $pkg | tr -d '"')
+    if [[ ! " ${selected_packages[*]} " =~ " ${cleaned} " ]]; then
+        selected_packages+=("$cleaned")
+    fi
+fi
 
 if [ -n "${selected_packages[*]}" ]; then
     header "نصب پیش‌نیازهای انتخاب شده"
-    run_cmd "apt install -y ${selected_packages[*]}"
+    run_cmd "DEBIAN_FRONTEND=noninteractive apt install -y ${selected_packages[*]}"
 else
     echo -e "${YELLOW}هیچ برنامه‌ای برای نصب انتخاب نشد.${NC}"
 fi
@@ -108,3 +123,4 @@ echo -e "\n${YELLOW}دستورات مدیریتی:${NC}"
 echo "مشاهده لاگ‌ها: docker logs -f tor-bridge"
 echo "توقف سرویس: docker compose down"
 echo "شروع مجدد: docker compose up -d"
+echo "اجرای Nyx برای مشاهده وضعیت Tor (درون کانتینر): docker exec -it tor-bridge nyx"
