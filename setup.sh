@@ -48,7 +48,9 @@ done
 
 # اضافه کردن پکیج‌های اختیاری
 for pkg in "${optional_packages[@]}"; do
-    options+=("$pkg" "" OFF)
+    if ! dpkg -s "$pkg" &>/dev/null; then
+        options+=("$pkg" "" OFF)
+    fi
 done
 
 selected=$(whiptail --title "Select Required Packages" \
