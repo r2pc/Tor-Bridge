@@ -55,28 +55,22 @@ while true; do
 
     echo -e "\n${YELLOW}برای تایید و ادامه نصب، Enter را فشار دهید.${NC}"
 
-    read -r -n 1 key
+    IFS= read -rsn1 key
+    if [[ $key == $'    if [[ $key == $'\x1b' ]]; then
+        read -rsn2 -t 0.1 rest
+        key+=$rest
+    fi
 
     case "$key" in
-        $'\E')
-            read -r -n 1 char2
-            case "$char2" in
-                '[')
-                    read -r -n 1 char3
-                    case "$char3" in
-                        'A')
-                            if [ "$current_index" -gt 0 ]; then
-                                ((current_index--))
-                            fi
-                            ;;
-                        'B')
-                            if [ "$current_index" -lt "$((num_packages - 1))" ]; then
-                                ((current_index++))
-                            fi
-                            ;;
-                    esac
-                    ;;
-            esac
+        $'        $'\x1b[A')  # کلید بالا
+            if [ "$current_index" -gt 0 ]; then
+                ((current_index--))
+            fi
+            ;;
+        $'        $'\x1b[B')  # کلید پایین
+            if [ "$current_index" -lt "$((num_packages - 1))" ]; then
+                ((current_index++))
+            fi
             ;;
         " ")
             current_package="${available_packages[$current_index]}"
@@ -88,10 +82,10 @@ while true; do
                 selected_packages=($(printf "%s\n" "${selected_packages[@]}" | grep -v "^${current_package}$"))
             fi
             ;;
-        $'\r')
+        "")
             break
             ;;
-        $'\x03')
+        $'        $'\x03')
             stty "$initial_tty_settings"
             exit 1
             ;;
