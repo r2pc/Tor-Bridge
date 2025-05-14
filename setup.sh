@@ -32,7 +32,7 @@ if ! command -v whiptail &>/dev/null; then
 fi
 
 header "انتخاب پیش‌نیازها برای نصب"
-declare -a available_packages=("ufw" "fail2ban" "net-tools" "iftop" "traceroute" "docker.io" "docker-buildx" "docker-compose-v2")
+declare -a available_packages=("docker.io" "docker-buildx" "docker-compose-v2" "ufw" "fail2ban" "net-tools" "iftop" "traceroute" "vnstat")
 declare -a options=()
 
 for pkg in "${available_packages[@]}"; do
