@@ -1,6 +1,27 @@
 #!/bin/bash
 set -e
 
+# بررسی دسترسی root
+if [[ $EUID -ne 0 ]]; then
+    echo -e "\033[0;31mاین اسکریپت باید با دسترسی root اجرا شود (مثلاً با sudo).\033[0m"
+    exit 1
+fi
+
+# بررسی وجود دستورات مورد نیاز
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+for cmd in apt ufw docker systemctl; do
+    if ! command_exists "$cmd"; then
+        echo -e "\033[0;31mدستور $cmd یافت نشد. لطفاً آن را نصب کنید.\033[0m"
+        exit 1
+    fi
+done
+
+# تنظیم لاگ‌گیری
+exec 1> >(tee -a "install.log")
+exec 2>&1
+
 # تنظیم رنگ‌ها
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -13,7 +34,10 @@ function header() {
 
 function run_cmd() {
     echo -e "${YELLOW}$ $1${NC}"
-    eval $1
+    if ! bash -c "$1"; then
+        echo -e "${RED}اجرای دستور '$1' با خطا مواجه شد.${NC}"
+        exit 1
+    fi
 }
 
 header "به‌روزرسانی سیستم"
@@ -32,8 +56,9 @@ selected_packages=()
 current_index=0
 num_packages="${#available_packages[@]}"
 
-# ذخیره تنظیمات اولیه ترمینال
+# ذخیره تنظیمات اولیه ترمینال و اطمینان از بازگردانی آن
 initial_tty_settings=$(stty -g)
+trap 'stty "$initial_tty_settings"' EXIT
 
 while true; do
     clear # پاک کردن صفحه ترمینال در هر بار نمایش
@@ -103,7 +128,6 @@ while true; do
 
     # بازگرداندن تنظیمات اولیه ترمینال
     stty "$initial_tty_settings"
-
 done
 
 if [ -n "${selected_packages[*]}" ]; then
@@ -114,6 +138,10 @@ else
 fi
 
 header "تنظیم Docker"
+if [ -z "$SUDO_USER" ]; then
+    echo -e "${RED}متغیر SUDO_USER تنظیم نشده است. لطفاً اسکریپت را با sudo اجرا کنید.${NC}"
+    exit 1
+fi
 run_cmd "usermod -aG docker $SUDO_USER"
 
 header "پیکربندی فایروال"
@@ -141,16 +169,26 @@ EOL
 run_cmd "systemctl restart fail2ban"
 
 header "راه‌اندازی Tor Bridge"
+if [ ! -f "docker-compose.yml" ]; then
+    echo -e "${RED}فایل docker-compose.yml یافت نشد.${NC}"
+    exit 1
+fi
 run_cmd "docker compose up -d --build"
 
-# اضافه کردن تاخیر قبل از اجرای دستورات docker exec
+# تاخیر ثابت 5 ثانیه‌ای (بدون تغییر)
 header "صبر کنید تا Tor Bridge راه‌اندازی شود..."
 sleep 5
 
+# بررسی وضعیت کانتینر
+if ! docker ps --filter "name=tor-bridge" --format '{{.Names}}' | grep -q '^tor-bridge$'; then
+    echo -e "${RED}کانتینر tor-bridge در حال اجرا نیست.${NC}"
+    exit 1
+fi
+
 header "نصب کامل شد"
 echo -e "${GREEN}اطلاعات Bridge:${NC}"
-run_cmd "sudo docker exec tor-bridge cat /var/lib/tor/fingerprint"
-run_cmd "sudo docker exec tor-bridge cat /var/lib/tor/pt_state/obfs4_bridgeline.txt"
+run_cmd "docker exec tor-bridge cat /var/lib/tor/fingerprint"
+run_cmd "docker exec tor-bridge cat /var/lib/tor/pt_state/obfs4_bridgeline.txt"
 
 echo -e "\n${YELLOW}دستورات مدیریتی:${NC}"
 echo "مشاهده لاگ‌ها: docker logs -f tor-bridge"
