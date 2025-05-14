@@ -4,7 +4,8 @@ RUN apt-get update && apt-get install -y \
     tor \
     obfs4proxy \
     nyx \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # تنظیم مالکیت با UID/GID واقعی
 RUN mkdir -p /var/lib/tor /var/log/tor && \
