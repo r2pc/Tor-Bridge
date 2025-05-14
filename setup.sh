@@ -39,7 +39,7 @@ for pkg in "${available_packages[@]}"; do
     options+=("$pkg" "" OFF)
 done
 
-selected=$(whiptail --title "انتخاب نرم‌افزارهای مورد نیاز" \
+selected=$(whiptail --title "نصب پیش‌نیازها" \
   --checklist "نرم‌افزارهایی که می‌خواهید نصب شوند را انتخاب کنید:" \
   20 78 12 "${options[@]}" 3>&1 1>&2 2>&3)
 
