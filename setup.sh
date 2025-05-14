@@ -56,18 +56,18 @@ while true; do
     echo -e "\n${YELLOW}برای تایید و ادامه نصب، Enter را فشار دهید.${NC}"
 
     IFS= read -rsn1 key
-    if [[ $key == $'    if [[ $key == $'\x1b' ]]; then
+    if [[ $key == $'\x1b' ]]; then
         read -rsn2 -t 0.1 rest
         key+=$rest
     fi
 
     case "$key" in
-        $'        $'\x1b[A')  # کلید بالا
+        $'\x1b[A')  # کلید بالا
             if [ "$current_index" -gt 0 ]; then
                 ((current_index--))
             fi
             ;;
-        $'        $'\x1b[B')  # کلید پایین
+        $'\x1b[B')  # کلید پایین
             if [ "$current_index" -lt "$((num_packages - 1))" ]; then
                 ((current_index++))
             fi
@@ -85,7 +85,7 @@ while true; do
         "")
             break
             ;;
-        $'        $'\x03')
+        $'\x03')
             stty "$initial_tty_settings"
             exit 1
             ;;
