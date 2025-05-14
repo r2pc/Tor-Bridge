@@ -48,7 +48,9 @@ done
 
 # اضافه کردن پکیج‌های اختیاری
 for pkg in "${optional_packages[@]}"; do
-    options+=("$pkg" "" OFF)
+    if ! dpkg -s "$pkg" &>/dev/null; then
+        options+=("$pkg" "" OFF)
+    fi
 done
 
 if [ "${#options[@]}" -eq 0 ]; then
@@ -68,6 +70,16 @@ else
         fi
     done
 fi
+
+
+selected_packages=("${actual_fixed_packages[@]}")
+read -ra selected_array <<< "$selected"
+for pkg in "${selected_array[@]}"; do
+    cleaned=$(echo "$pkg" | tr -d '"')
+    if [[ ! " ${selected_packages[*]} " =~ " ${cleaned} " ]]; then
+        selected_packages+=("$cleaned")
+    fi
+done
 
 if [ "${#selected_packages[@]}" -gt 0 ]; then
     header "نصب پیش‌نیازهای انتخاب شده"
