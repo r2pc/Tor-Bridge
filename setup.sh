@@ -25,75 +25,28 @@ fi
 header "به‌روزرسانی سیستم"
 run_cmd "apt update"
 
+header "بررسی نصب بودن whiptail"
+if ! command -v whiptail &>/dev/null; then
+    echo -e "${YELLOW}نصب whiptail...${NC}"
+    run_cmd "apt install -y whiptail"
+fi
+
 header "انتخاب پیش‌نیازها برای نصب"
 declare -a available_packages=("ufw" "fail2ban" "net-tools" "iftop" "traceroute" "docker.io" "docker-buildx" "docker-compose-v2")
-declare -A selection_status
+declare -a options=()
 
-for package in "${available_packages[@]}"; do
-    selection_status["$package"]=' '
+for pkg in "${available_packages[@]}"; do
+    options+=("$pkg" "" OFF)
 done
+
+selected=$(whiptail --title "انتخاب نرم‌افزارهای مورد نیاز" \
+  --checklist "نرم‌افزارهایی که می‌خواهید نصب شوند را انتخاب کنید:" \
+  20 78 12 "${options[@]}" 3>&1 1>&2 2>&3)
 
 selected_packages=()
-current_index=0
-num_packages="${#available_packages[@]}"
-
-initial_tty_settings=$(stty -g)
-stty -icanon -echo
-
-while true; do
-    clear
-    echo "لیست برنامه‌های قابل نصب (از کلیدهای جهت‌نما برای حرکت و اسپیس برای انتخاب استفاده کنید):"
-    for i in "${!available_packages[@]}"; do
-        package="${available_packages[$i]}"
-        status="${selection_status["$package"]}"
-        indicator=" "
-        if [ "$i" -eq "$current_index" ]; then
-            indicator="${GREEN}>${NC}"
-        fi
-        printf "%s [%s] %s\n" "$indicator" "$status" "$package"
-    done
-
-    echo -e "\n${YELLOW}برای تایید و ادامه نصب، Enter را فشار دهید.${NC}"
-
-    IFS= read -rsn1 key
-    if [[ $key == $'\x1b' ]]; then
-        read -rsn2 -t 0.1 rest
-        key+=$rest
-    fi
-
-    case "$key" in
-        $'\x1b[A')  # کلید بالا
-            if [ "$current_index" -gt 0 ]; then
-                ((current_index--))
-            fi
-            ;;
-        $'\x1b[B')  # کلید پایین
-            if [ "$current_index" -lt "$((num_packages - 1))" ]; then
-                ((current_index++))
-            fi
-            ;;
-        " ")
-            current_package="${available_packages[$current_index]}"
-            if [ "${selection_status["$current_package"]}" == " " ]; then
-                selection_status["$current_package"]='X'
-                selected_packages+=("$current_package")
-            else
-                selection_status["$current_package"]=' '
-                selected_packages=($(printf "%s\n" "${selected_packages[@]}" | grep -v "^${current_package}$"))
-            fi
-            ;;
-        "")
-            break
-            ;;
-        $'\x03')
-            stty "$initial_tty_settings"
-            exit 1
-            ;;
-    esac
-
+for pkg in $selected; do
+    selected_packages+=("$(echo $pkg | tr -d '"')")
 done
-
-stty "$initial_tty_settings"
 
 if [ -n "${selected_packages[*]}" ]; then
     header "نصب پیش‌نیازهای انتخاب شده"
