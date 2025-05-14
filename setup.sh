@@ -56,14 +56,15 @@ selected=$(whiptail --title "انتخاب نرم‌افزارهای مورد ن�
   20 78 15 "${options[@]}" 3>&1 1>&2 2>&3)
 
 selected_packages=("${actual_fixed_packages[@]}")
-for pkg in $selected; do
-    cleaned=$(echo $pkg | tr -d '"')
+read -ra selected_array <<< "$selected"
+for pkg in "${selected_array[@]}"; do
+    cleaned=$(echo "$pkg" | tr -d '"')
     if [[ ! " ${selected_packages[*]} " =~ " ${cleaned} " ]]; then
         selected_packages+=("$cleaned")
     fi
-fi
+done
 
-if [ -n "${selected_packages[*]}" ]; then
+if [ "${#selected_packages[@]}" -gt 0 ]; then
     header "نصب پیش‌نیازهای انتخاب شده"
     run_cmd "DEBIAN_FRONTEND=noninteractive apt install -y ${selected_packages[*]}"
 else
@@ -77,12 +78,14 @@ header "پیکربندی فایروال"
 read -p "پورت SSH شما (پیش‌فرض: 22): " ssh_port
 ssh_port=${ssh_port:-22}
 
-run_cmd "ufw default deny incoming"
-run_cmd "ufw default allow outgoing"
-run_cmd "ufw allow $ssh_port"
-run_cmd "ufw deny 2096/tcp"
-run_cmd "ufw allow 8443/tcp"
-run_cmd "ufw --force enable"
+if command -v ufw &>/dev/null; then
+    run_cmd "ufw default deny incoming"
+    run_cmd "ufw default allow outgoing"
+    run_cmd "ufw allow $ssh_port"
+    run_cmd "ufw deny 2096/tcp"
+    run_cmd "ufw allow 8443/tcp"
+    run_cmd "ufw --force enable"
+fi
 
 header "تنظیم Fail2Ban"
 cat > /etc/fail2ban/jail.local <<EOL
@@ -95,7 +98,9 @@ maxretry = 3
 bantime = 1h
 EOL
 
-run_cmd "systemctl restart fail2ban"
+if command -v fail2ban-client &>/dev/null; then
+    run_cmd "systemctl restart fail2ban"
+fi
 
 header "راه‌اندازی Tor Bridge"
 if [ ! -f docker-compose.yml ]; then
