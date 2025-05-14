@@ -23,7 +23,7 @@ if [ -z "$SUDO_USER" ]; then
 fi
 
 header "به‌روزرسانی سیستم"
-run_cmd "apt update"
+run_cmd "apt update && apt upgrade -y"
 
 header "بررسی نصب بودن whiptail"
 if ! command -v whiptail &>/dev/null; then
@@ -46,7 +46,7 @@ for pkg in "${fixed_packages[@]}"; do
     # اگر نصب بود، نیازی به تلاش برای نصب مجدد نیست
 done
 
-# اضافه کردن پکیج‌های اختیاری
+# اضافه کردن پکیج‌های اختیاری که نصب نیستند
 for pkg in "${optional_packages[@]}"; do
     if ! dpkg -s "$pkg" &>/dev/null; then
         options+=("$pkg" "" OFF)
@@ -70,16 +70,6 @@ else
         fi
     done
 fi
-
-
-selected_packages=("${actual_fixed_packages[@]}")
-read -ra selected_array <<< "$selected"
-for pkg in "${selected_array[@]}"; do
-    cleaned=$(echo "$pkg" | tr -d '"')
-    if [[ ! " ${selected_packages[*]} " =~ " ${cleaned} " ]]; then
-        selected_packages+=("$cleaned")
-    fi
-done
 
 if [ "${#selected_packages[@]}" -gt 0 ]; then
     header "نصب پیش‌نیازهای انتخاب شده"
