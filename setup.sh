@@ -20,7 +20,7 @@ header "به‌روزرسانی سیستم"
 run_cmd "apt update"
 
 header "انتخاب پیش‌نیازها برای نصب"
-declare -a available_packages=("docker.io" "docker-buildx" "docker-compose-v2" "ufw" "fail2ban" "net-tools" "iftop" "traceroute" "vnstat")
+declare -a available_packages=("ufw" "fail2ban" "net-tools" "iftop" "traceroute" "docker.io" "docker-buildx" "docker-compose-v2")
 declare -A selection_status # آرایه انجمنی برای وضعیت انتخاب
 
 # مقداردهی اولیه وضعیت انتخاب به انتخاب نشده
@@ -37,9 +37,9 @@ while true; do
 
     echo "لیست برنامه‌های قابل نصب (از کلیدهای جهت‌نما برای حرکت و اسپیس برای انتخاب استفاده کنید):"
     for i in "${!available_packages[@]}"; do
-        local package="${available_packages[$i]}"
-        local status="${selection_status["$package"]}"
-        local indicator=" "
+        package="${available_packages[$i]}"
+        status="${selection_status["$package"]}"
+        indicator=" "
         if [ "$i" -eq "$current_index" ]; then
             indicator="${GREEN}>${NC}"
         fi
