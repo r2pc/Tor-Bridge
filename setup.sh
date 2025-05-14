@@ -40,9 +40,9 @@ while true; do
 
     echo "لیست برنامه‌های قابل نصب (از کلیدهای جهت‌نما برای حرکت و اسپیس برای انتخاب استفاده کنید):"
     for i in "${!available_packages[@]}"; do
-        local package="${available_packages[$i]}"
-        local status="${selection_status["$package"]}"
-        local indicator=" "
+        package="${available_packages[$i]}"
+        status="${selection_status["$package"]}"
+        indicator=" "
         if [ "$i" -eq "$current_index" ]; then
             indicator="${GREEN}>${NC}"
         fi
