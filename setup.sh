@@ -32,18 +32,18 @@ if ! command -v whiptail &>/dev/null; then
 fi
 
 header "انتخاب پیش‌نیازها برای نصب"
-declare -a fixed_packages=("docker.io" "docker-buildx" "docker-compose-v2")
-declare -a optional_packages=("ufw" "fail2ban" "net-tools" "iftop" "traceroute")
+declare -a fixed_packages=("docker.io" "docker-buildx" "docker-compose-v2" "ufw" "fail2ban")
+declare -a optional_packages=("net-tools" "iftop" "traceroute")
 declare -a options=()
 
-# اضافه کردن پکیج‌های الزامی به صورت غیرقابل غیرفعال‌سازی
+# فیلتر کردن پکیج‌های نصب نشده از fixed_packages
+actual_fixed_packages=()
 for pkg in "${fixed_packages[@]}"; do
-    options+=("$pkg" "(اجباری)" ON)
-
-    # غیرفعال کردن انتخاب‌پذیری آن‌ها با اضافه کردن تگ disabled (فقط برای whiptail قابل پیاده‌سازی نیست ولی برای dialog می‌توان)
-    # اینجا فقط به صورت بصری آنها را انتخاب‌شده نشان می‌دهیم
-    # whiptail چنین امکانی ندارد که انتخاب را قفل کند
-
+    if ! dpkg -s "$pkg" &>/dev/null; then
+        actual_fixed_packages+=("$pkg")
+        options+=("$pkg" "(اجباری)" ON)
+    fi
+    # اگر نصب بود، نیازی به تلاش برای نصب مجدد نیست
 done
 
 # اضافه کردن پکیج‌های اختیاری
@@ -55,7 +55,7 @@ selected=$(whiptail --title "انتخاب نرم‌افزارهای مورد ن�
   --checklist "نرم‌افزارهایی که می‌خواهید نصب شوند را انتخاب کنید:" \
   20 78 15 "${options[@]}" 3>&1 1>&2 2>&3)
 
-selected_packages=("${fixed_packages[@]}")
+selected_packages=("${actual_fixed_packages[@]}")
 for pkg in $selected; do
     cleaned=$(echo $pkg | tr -d '"')
     if [[ ! " ${selected_packages[*]} " =~ " ${cleaned} " ]]; then
