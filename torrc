@@ -11,3 +11,7 @@ PublishServerDescriptor 0
 #obfs4proxy
 ServerTransportPlugin obfs4 exec /usr/bin/obfs4proxy
 ServerTransportListenAddr obfs4 0.0.0.0:8443
+
+#Monitoring
+ControlPort 9051
+CookieAuthentication 1
