@@ -3,6 +3,7 @@ FROM ubuntu:24.04
 RUN apt-get update && apt-get install -y \
     tor \
     obfs4proxy \
+    nyx \
     && rm -rf /var/lib/apt/lists/*
 
 # تنظیم مالکیت با UID/GID واقعی
