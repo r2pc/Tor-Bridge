@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# تنظیم رنگ‌ها
+# تنظیم رنگ‌ها (همانند قبل)
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -40,9 +40,9 @@ while true; do
 
     echo "لیست برنامه‌های قابل نصب (از کلیدهای جهت‌نما برای حرکت و اسپیس برای انتخاب استفاده کنید):"
     for i in "${!available_packages[@]}"; do
-        package="${available_packages[$i]}"
-        status="${selection_status["$package"]}"
-        indicator=" "
+        local package="${available_packages[$i]}"
+        local status="${selection_status["$package"]}"
+        local indicator=" "
         if [ "$i" -eq "$current_index" ]; then
             indicator="${GREEN}>${NC}"
         fi
@@ -54,22 +54,33 @@ while true; do
     # تنظیم ترمینال برای خواندن کلیدهای خاص
     stty -icanon -echo
 
-    # خواندن یک کاراکتر ورودی با timeout کم
-    read -r -d '' -t 0.1 key
-
-    # بازگرداندن تنظیمات اولیه ترمینال
-    stty "$initial_tty_settings"
+    # خواندن یک کاراکتر ورودی
+    read -r -n 1 key
 
     case "$key" in
-        $'\E[A') # کلید بالا
-            if [ "$current_index" -gt 0 ]; then
-                ((current_index--))
-            fi
-            ;;
-        $'\E[B') # کلید پایین
-            if [ "$current_index" -lt "$((num_packages - 1))" ]; then
-                ((current_index++))
-            fi
+        $'\E') # شروع دنباله escape
+            read -r -n 1 char2
+            case "$char2" in
+                '[')
+                    read -r -n 1 char3
+                    case "$char3" in
+                        'A') # کلید بالا
+                            if [ "$current_index" -gt 0 ]; then
+                                ((current_index--))
+                            fi
+                            ;;
+                        'B') # کلید پایین
+                            if [ "$current_index" -lt "$((num_packages - 1))" ]; then
+                                ((current_index++))
+                            fi
+                            ;;
+                        'C') # کلید راست (اختیاری)
+                            ;;
+                        'D') # کلید چپ (اختیاری)
+                            ;;
+                    esac
+                    ;;
+            esac
             ;;
         " ") # کلید اسپیس
             local current_package="${available_packages[$current_index]}"
@@ -84,7 +95,15 @@ while true; do
         $'\r') # کلید Enter
             break
             ;;
+        $'\x03') # Ctrl+C برای خروج اضطراری
+            stty "$initial_tty_settings"
+            exit 1
+            ;;
     esac
+
+    # بازگرداندن تنظیمات اولیه ترمینال
+    stty "$initial_tty_settings"
+
 done
 
 if [ -n "${selected_packages[*]}" ]; then
