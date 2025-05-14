@@ -8,19 +8,82 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 function header() {
-  echo -e "${GREEN}\n=== $1 ===${NC}"
+    echo -e "${GREEN}\n=== $1 ===${NC}"
 }
 
 function run_cmd() {
-  echo -e "${YELLOW}$ $1${NC}"
-  eval $1
+    echo -e "${YELLOW}$ $1${NC}"
+    eval $1
 }
 
 header "به‌روزرسانی سیستم"
-run_cmd "apt update && apt upgrade -y"
+run_cmd "apt update"
 
-header "نصب پیش‌نیازها"
-run_cmd "apt install -y ufw fail2ban net-tools iftop traceroute docker.io docker-buildx docker-compose-v2"
+header "انتخاب پیش‌نیازها برای نصب"
+declare -a available_packages=("docker.io" "docker-buildx" "docker-compose-v2" "ufw" "fail2ban" "net-tools" "iftop" "traceroute" "vnstat")
+declare -A selection_status # آرایه انجمنی برای وضعیت انتخاب
+
+# مقداردهی اولیه وضعیت انتخاب به انتخاب نشده
+for package in "${available_packages[@]}"; do
+    selection_status["$package"]=' '
+done
+
+selected_packages=()
+current_index=0
+num_packages="${#available_packages[@]}"
+
+while true; do
+    clear # پاک کردن صفحه ترمینال در هر بار نمایش
+
+    echo "لیست برنامه‌های قابل نصب (از کلیدهای جهت‌نما برای حرکت و اسپیس برای انتخاب استفاده کنید):"
+    for i in "${!available_packages[@]}"; do
+        local package="${available_packages[$i]}"
+        local status="${selection_status["$package"]}"
+        local indicator=" "
+        if [ "$i" -eq "$current_index" ]; then
+            indicator="${GREEN}>${NC}"
+        fi
+        printf "%s [%s] %s\n" "$indicator" "$status" "$package"
+    done
+
+    echo -e "\n${YELLOW}برای تایید و ادامه نصب، Enter را فشار دهید.${NC}"
+
+    # خواندن یک کاراکتر ورودی بدون نمایش
+    read -rsn1 key
+
+    case "$key" in
+        $'A') # کلید بالا
+            if [ "$current_index" -gt 0 ]; then
+                ((current_index--))
+            fi
+            ;;
+        $'B') # کلید پایین
+            if [ "$current_index" -lt "$((num_packages - 1))" ]; then
+                ((current_index++))
+            fi
+            ;;
+        " ") # کلید اسپیس
+            local current_package="${available_packages[$current_index]}"
+            if [ "${selection_status["$current_package"]}" == " " ]; then
+                selection_status["$current_package"]='X'
+                selected_packages+=("$current_package")
+            else
+                selection_status["$current_package"]=' '
+                selected_packages=($(printf "%s\n" "${selected_packages[@]}" | grep -v "^${current_package}$"))
+            fi
+            ;;
+        $'\r') # کلید Enter
+            break
+            ;;
+    esac
+done
+
+if [ -n "${selected_packages[*]}" ]; then
+    header "نصب پیش‌نیازهای انتخاب شده"
+    run_cmd "apt install -y ${selected_packages[*]}"
+else
+    echo -e "${YELLOW}هیچ برنامه‌ای برای نصب انتخاب نشد.${NC}"
+fi
 
 header "تنظیم Docker"
 run_cmd "usermod -aG docker $SUDO_USER"
@@ -32,7 +95,7 @@ ssh_port=${ssh_port:-22}
 run_cmd "ufw default deny incoming"
 run_cmd "ufw default allow outgoing"
 run_cmd "ufw allow $ssh_port"
-run_cmd "ufw deny 2096"
+run_cmd "ufw deny 2096/tcp"
 run_cmd "ufw allow 8443/tcp"
 run_cmd "ufw --force enable"
 
