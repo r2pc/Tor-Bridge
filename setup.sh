@@ -7,17 +7,6 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-# بررسی وجود دستورات مورد نیاز
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
-}
-for cmd in apt ufw docker systemctl; do
-    if ! command_exists "$cmd"; then
-        echo -e "\033[0;31mدستور $cmd یافت نشد. لطفاً آن را نصب کنید.\033[0m"
-        exit 1
-    fi
-done
-
 # تنظیم لاگ‌گیری
 exec 1> >(tee -a "install.log")
 exec 2>&1
@@ -43,8 +32,23 @@ function run_cmd() {
 header "به‌روزرسانی سیستم"
 run_cmd "apt update"
 
+# نصب اجباری پکیج‌های Docker
+header "نصب پکیج‌های Docker"
+run_cmd "apt install -y docker.io docker-buildx docker-compose-v2"
+
+# بررسی وجود دستورات مورد نیاز
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+for cmd in apt ufw docker systemctl; do
+    if ! command_exists "$cmd"; then
+        echo -e "${RED}دستور $cmd یافت نشد. لطفاً آن را نصب کنید.${NC}"
+        exit 1
+    fi
+done
+
 header "انتخاب پیش‌نیازها برای نصب"
-declare -a available_packages=("ufw" "fail2ban" "net-tools" "iftop" "traceroute" "docker.io" "docker-buildx" "docker-compose-v2")
+declare -a available_packages=("ufw" "fail2ban" "net-tools" "iftop" "traceroute")
 declare -A selection_status # آرایه انجمنی برای وضعیت انتخاب
 
 # مقداردهی اولیه وضعیت انتخاب به انتخاب نشده
