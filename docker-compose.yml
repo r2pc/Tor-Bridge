@@ -10,7 +10,7 @@ services:
     ports:
       - "2096:2096"
       - "8443:8443"
-      healthcheck:
+    healthcheck:
       test: ["CMD", "tor", "--verify-config"]
       interval: 30s
       timeout: 10s
