@@ -32,7 +32,7 @@ if ! command -v whiptail &>/dev/null; then
 fi
 
 header "انتخاب پیش‌نیازها برای نصب"
-declare -a fixed_packages=("docker.io" "docker-buildx" "docker-compose-v2" "ufw" "fail2ban")
+declare -a fixed_packages=("vnstat" "docker.io" "docker-buildx" "docker-compose-v2" "ufw" "fail2ban")
 declare -a optional_packages=("net-tools" "iftop" "traceroute")
 declare -a options=()
 
