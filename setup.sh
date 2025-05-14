@@ -32,7 +32,7 @@ if ! command -v whiptail &>/dev/null; then
 fi
 
 header "انتخاب پیش‌نیازها برای نصب"
-declare -a fixed_packages=("vnstat" "docker.io" "docker-buildx" "docker-compose-v2" "ufw" "fail2ban")
+declare -a fixed_packages=("docker.io" "docker-buildx" "docker-compose-v2" "ufw" "fail2ban")
 declare -a optional_packages=("net-tools" "iftop" "traceroute")
 declare -a options=()
 
@@ -41,7 +41,7 @@ actual_fixed_packages=()
 for pkg in "${fixed_packages[@]}"; do
     if ! dpkg -s "$pkg" &>/dev/null; then
         actual_fixed_packages+=("$pkg")
-        options+=("$pkg" "(اجباری)" ON)
+        options+=("$pkg" "(required)" ON)
     fi
     # اگر نصب بود، نیازی به تلاش برای نصب مجدد نیست
 done
@@ -51,8 +51,8 @@ for pkg in "${optional_packages[@]}"; do
     options+=("$pkg" "" OFF)
 done
 
-selected=$(whiptail --title "انتخاب نرم‌افزارهای مورد نیاز" \
-  --checklist "نرم‌افزارهایی که می‌خواهید نصب شوند را انتخاب کنید:" \
+selected=$(whiptail --title "Select Required Packages" \
+  --checklist "Select the packages you want to install:" \
   20 78 15 "${options[@]}" 3>&1 1>&2 2>&3)
 
 selected_packages=("${actual_fixed_packages[@]}")
