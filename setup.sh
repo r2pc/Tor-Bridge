@@ -16,14 +16,19 @@ function run_cmd() {
     eval $1
 }
 
+# بررسی اینکه اسکریپت با sudo اجرا شده باشد
+if [ -z "$SUDO_USER" ]; then
+    echo -e "${RED}لطفاً اسکریپت را با sudo اجرا کنید.${NC}"
+    exit 1
+fi
+
 header "به‌روزرسانی سیستم"
 run_cmd "apt update"
 
 header "انتخاب پیش‌نیازها برای نصب"
 declare -a available_packages=("ufw" "fail2ban" "net-tools" "iftop" "traceroute" "docker.io" "docker-buildx" "docker-compose-v2")
-declare -A selection_status # آرایه انجمنی برای وضعیت انتخاب
+declare -A selection_status
 
-# مقداردهی اولیه وضعیت انتخاب به انتخاب نشده
 for package in "${available_packages[@]}"; do
     selection_status["$package"]=' '
 done
@@ -32,12 +37,11 @@ selected_packages=()
 current_index=0
 num_packages="${#available_packages[@]}"
 
-# ذخیره تنظیمات اولیه ترمینال
 initial_tty_settings=$(stty -g)
+stty -icanon -echo
 
 while true; do
-    clear # پاک کردن صفحه ترمینال در هر بار نمایش
-
+    clear
     echo "لیست برنامه‌های قابل نصب (از کلیدهای جهت‌نما برای حرکت و اسپیس برای انتخاب استفاده کنید):"
     for i in "${!available_packages[@]}"; do
         package="${available_packages[$i]}"
@@ -51,38 +55,30 @@ while true; do
 
     echo -e "\n${YELLOW}برای تایید و ادامه نصب، Enter را فشار دهید.${NC}"
 
-    # تنظیم ترمینال برای خواندن کلیدهای خاص
-    stty -icanon -echo
-
-    # خواندن یک کاراکتر ورودی
     read -r -n 1 key
 
     case "$key" in
-        $'\E') # شروع دنباله escape
+        $'\E')
             read -r -n 1 char2
             case "$char2" in
                 '[')
                     read -r -n 1 char3
                     case "$char3" in
-                        'A') # کلید بالا
+                        'A')
                             if [ "$current_index" -gt 0 ]; then
                                 ((current_index--))
                             fi
                             ;;
-                        'B') # کلید پایین
+                        'B')
                             if [ "$current_index" -lt "$((num_packages - 1))" ]; then
                                 ((current_index++))
                             fi
-                            ;;
-                        'C') # کلید راست (اختیاری)
-                            ;;
-                        'D') # کلید چپ (اختیاری)
                             ;;
                     esac
                     ;;
             esac
             ;;
-        " ") # کلید اسپیس
+        " ")
             current_package="${available_packages[$current_index]}"
             if [ "${selection_status["$current_package"]}" == " " ]; then
                 selection_status["$current_package"]='X'
@@ -92,19 +88,18 @@ while true; do
                 selected_packages=($(printf "%s\n" "${selected_packages[@]}" | grep -v "^${current_package}$"))
             fi
             ;;
-        $'\r') # کلید Enter
+        $'\r')
             break
             ;;
-        $'\x03') # Ctrl+C برای خروج اضطراری
+        $'\x03')
             stty "$initial_tty_settings"
             exit 1
             ;;
     esac
 
-    # بازگرداندن تنظیمات اولیه ترمینال
-    stty "$initial_tty_settings"
-
 done
+
+stty "$initial_tty_settings"
 
 if [ -n "${selected_packages[*]}" ]; then
     header "نصب پیش‌نیازهای انتخاب شده"
@@ -141,9 +136,19 @@ EOL
 run_cmd "systemctl restart fail2ban"
 
 header "راه‌اندازی Tor Bridge"
+if [ ! -f docker-compose.yml ]; then
+    echo -e "${RED}فایل docker-compose.yml پیدا نشد.${NC}"
+    exit 1
+fi
+
+# بررسی وجود docker compose فقط در صورت انتخاب آن
+if ! command -v docker &>/dev/null || ! docker compose version &>/dev/null; then
+    echo -e "${YELLOW}Docker یا Docker Compose در دسترس نیست. لطفاً مطمئن شوید که آن را از لیست نصب انتخاب کرده‌اید.${NC}"
+    exit 1
+fi
+
 run_cmd "docker compose up -d --build"
 
-# اضافه کردن تاخیر قبل از اجرای دستورات docker exec
 header "صبر کنید تا Tor Bridge راه‌اندازی شود..."
 sleep 5
 
