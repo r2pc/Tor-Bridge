@@ -32,14 +32,17 @@ selected_packages=()
 current_index=0
 num_packages="${#available_packages[@]}"
 
+# ذخیره تنظیمات اولیه ترمینال
+initial_tty_settings=$(stty -g)
+
 while true; do
     clear # پاک کردن صفحه ترمینال در هر بار نمایش
 
     echo "لیست برنامه‌های قابل نصب (از کلیدهای جهت‌نما برای حرکت و اسپیس برای انتخاب استفاده کنید):"
     for i in "${!available_packages[@]}"; do
-        package="${available_packages[$i]}"
-        status="${selection_status["$package"]}"
-        indicator=" "
+        local package="${available_packages[$i]}"
+        local status="${selection_status["$package"]}"
+        local indicator=" "
         if [ "$i" -eq "$current_index" ]; then
             indicator="${GREEN}>${NC}"
         fi
@@ -48,16 +51,22 @@ while true; do
 
     echo -e "\n${YELLOW}برای تایید و ادامه نصب، Enter را فشار دهید.${NC}"
 
-    # خواندن یک کاراکتر ورودی بدون نمایش
-    read -rsn1 key
+    # تنظیم ترمینال برای خواندن کلیدهای خاص
+    stty -icanon -echo
+
+    # خواندن یک کاراکتر ورودی با timeout کم
+    read -r -d '' -t 0.1 key
+
+    # بازگرداندن تنظیمات اولیه ترمینال
+    stty "$initial_tty_settings"
 
     case "$key" in
-        $'A') # کلید بالا
+        $'\E[A') # کلید بالا
             if [ "$current_index" -gt 0 ]; then
                 ((current_index--))
             fi
             ;;
-        $'B') # کلید پایین
+        $'\E[B') # کلید پایین
             if [ "$current_index" -lt "$((num_packages - 1))" ]; then
                 ((current_index++))
             fi
