@@ -52,7 +52,7 @@ for pkg in "${optional_packages[@]}"; do
 done
 
 # اضافه کردن گزینه Portainer جداگانه
-options+=("portainer" "نصب رابط گرافیکی مدیریت Docker (Portainer)" OFF)
+options+=("portainer" "Install graphical interface for Docker (Portainer)" OFF)
 
 if [ "${#options[@]}" -eq 0 ]; then
     echo -e "${GREEN}تمامی پیش‌نیازها قبلاً نصب شده‌اند. مرحله نصب پکیج‌ها رد شد.${NC}"
@@ -105,8 +105,8 @@ if [[ " ${selected_packages[*]} " =~ " portainer " ]]; then
         run_cmd "ufw allow 2053/tcp"
     fi
 
-    if whiptail --title "استفاده از دامنه برای Portainer" --yesno "آیا می‌خواهید دامنه‌ای برای دسترسی به Portainer تنظیم کنید؟ (مثلاً: portainer.example.com)" 10 60; then
-        domain=$(whiptail --inputbox "دامنه مورد نظر را وارد کنید:" 10 60 3>&1 1>&2 2>&3)
+    if whiptail --title "Portainer Domain Setup" --yesno "Do you want to set up a domain for accessing Portainer? (e.g., portainer.example.com)" 10 60; then
+        domain=$(whiptail --inputbox "Enter your domain:" 10 60 3>&1 1>&2 2>&3)
         if [ -n "$domain" ]; then
             header "تنظیم Portainer برای استفاده با دامنه: $domain"
             echo -e "${YELLOW}توجه: برای راه‌اندازی با دامنه، پیشنهاد می‌شود reverse proxy مانند Nginx یا Caddy تنظیم شود.${NC}"
