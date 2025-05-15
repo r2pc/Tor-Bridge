@@ -91,9 +91,17 @@ fi
 if [[ " ${selected_packages[*]} " =~ " portainer " ]]; then
     header "راه‌اندازی Portainer"
     docker volume create portainer_data
-    run_cmd "docker run -d -p 2053:2053 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce"
+    run_cmd "docker run -d \
+        -p 2052:9000 \
+        -p 2053:9443 \
+        --name portainer \
+        --restart=always \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -v portainer_data:/data \
+        portainer/portainer-ce"
 
     if command -v ufw &>/dev/null; then
+        run_cmd "ufw allow 2052/tcp"
         run_cmd "ufw allow 2053/tcp"
     fi
 
@@ -108,13 +116,13 @@ if [[ " ${selected_packages[*]} " =~ " portainer " ]]; then
     server_name $domain;
 
     location / {
-        proxy_pass http://localhost:2053/;
+        proxy_pass http://localhost:2052/;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
     }
-}" 
+}"
         fi
     fi
 fi
@@ -132,6 +140,8 @@ if command -v ufw &>/dev/null; then
     run_cmd "ufw allow $ssh_port"
     run_cmd "ufw deny 2096/tcp"
     run_cmd "ufw allow 8443/tcp"
+    run_cmd "ufw allow 2052/tcp"
+    run_cmd "ufw allow 2053/tcp"
     run_cmd "ufw --force enable"
 fi
 
@@ -173,7 +183,13 @@ run_cmd "sudo docker exec tor-bridge cat /var/lib/tor/fingerprint"
 run_cmd "sudo docker exec tor-bridge cat /var/lib/tor/pt_state/obfs4_bridgeline.txt"
 
 echo -e "\n${YELLOW}دستورات مدیریتی:${NC}"
-echo "مشاهده لاگ‌ها: sudo docker logs -f tor-bridge"
-echo "توقف سرویس: sudo docker compose down"
-echo "شروع مجدد: sudo docker compose up -d"
-echo "اجرای Nyx برای مشاهده وضعیت Tor (درون کانتینر): sudo docker exec -it tor-bridge nyx"
+echo "مشاهده لاگ‌های Tor Bridge: sudo docker logs -f tor-bridge"
+echo "توقف Tor Bridge: sudo docker compose down"
+echo "شروع مجدد Tor Bridge: sudo docker compose up -d"
+echo "اجرای Nyx برای وضعیت Tor (درون کانتینر): sudo docker exec -it tor-bridge nyx"
+echo "\n${YELLOW}دستورات مربوط به Portainer:${NC}"
+echo "مشاهده لاگ‌های Portainer: sudo docker logs -f portainer"
+echo "توقف Portainer: sudo docker stop portainer"
+echo "شروع Portainer: sudo docker start portainer"
+echo "حذف Portainer: sudo docker rm -f portainer"
+echo "حذف Volume Portainer (در صورت نیاز): sudo docker volume rm portainer_data"
