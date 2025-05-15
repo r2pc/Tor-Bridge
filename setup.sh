@@ -33,7 +33,7 @@ fi
 
 header "انتخاب پیش‌نیازها برای نصب"
 declare -a fixed_packages=("docker.io" "docker-buildx" "docker-compose-v2" "ufw" "fail2ban")
-declare -a optional_packages=("vnstat" "net-tools" "iftop" "traceroute" "portainer")
+declare -a optional_packages=("vnstat" "net-tools" "iftop" "traceroute")
 declare -a options=()
 
 # فیلتر کردن پکیج‌های نصب نشده از fixed_packages
@@ -50,6 +50,9 @@ done
 for pkg in "${optional_packages[@]}"; do
     options+=("$pkg" "" OFF)
 done
+
+# اضافه کردن گزینه Portainer جداگانه
+options+=("portainer" "نصب رابط گرافیکی مدیریت Docker (Portainer)" OFF)
 
 if [ "${#options[@]}" -eq 0 ]; then
     echo -e "${GREEN}تمامی پیش‌نیازها قبلاً نصب شده‌اند. مرحله نصب پکیج‌ها رد شد.${NC}"
@@ -71,7 +74,15 @@ fi
 
 if [ "${#selected_packages[@]}" -gt 0 ]; then
     header "نصب پیش‌نیازهای انتخاب شده"
-    run_cmd "DEBIAN_FRONTEND=noninteractive apt install -y ${selected_packages[*]}"
+    filtered_packages=()
+    for pkg in "${selected_packages[@]}"; do
+        if [[ "$pkg" != "portainer" ]]; then
+            filtered_packages+=("$pkg")
+        fi
+    done
+    if [ "${#filtered_packages[@]}" -gt 0 ]; then
+        run_cmd "DEBIAN_FRONTEND=noninteractive apt install -y ${filtered_packages[*]}"
+    fi
 else
     echo -e "${YELLOW}هیچ برنامه‌ای برای نصب انتخاب نشد.${NC}"
 fi
